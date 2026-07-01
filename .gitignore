@@ -33,7 +33,6 @@ ENV/
 
 # Caches
 .pytest_cache/
-cache/
 logs/
 
 # IDEs
@@ -41,3 +40,5 @@ logs/
 .idea/
 *.swp
 *.swo
+data/
+cache/

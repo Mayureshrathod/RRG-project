@@ -67,8 +67,10 @@ def main() -> None:
     app = create_app(rrg_service)
     
     # Run server
-    logger.info("Server started at http://127.0.0.1:8050")
-    app.run(debug=True, port=8050)
+    logger.info("Server starting on port 8050...")
+    logger.info("Local access: http://127.0.0.1:8050")
+    logger.info("Network access: http://<YOUR_COMPUTER_IP>:8050 (for your team to access)")
+    app.run(host='0.0.0.0', debug=True, port=8050)
 
 if __name__ == "__main__":
     main()
