@@ -1,0 +1,74 @@
+"""
+RRG Dashboard — Entry Point
+"""
+
+import time
+from datetime import datetime
+
+from cache.cache_manager import CacheManager
+from engine.jdk_engine import JdKEngine
+from dashboard.app import create_app
+from utils.logger import get_logger
+from config.indices import SECTOR_TICKERS, BENCHMARKS
+
+logger = get_logger(__name__)
+
+def validate_startup(cache_manager: CacheManager) -> None:
+    """Run comprehensive startup validation."""
+    logger.info("=" * 60)
+    logger.info("STARTUP VALIDATION REPORT")
+    logger.info("=" * 60)
+    
+    # 1. Timezone Check
+    tz = time.tzname
+    logger.info(f"[TIMEZONE] Local Timezone: {tz}")
+    
+    # 2. Duplicate Symbol Check
+    all_tickers = list(SECTOR_TICKERS.keys()) + list(BENCHMARKS.keys())
+    duplicates = set([x for x in all_tickers if all_tickers.count(x) > 1])
+    if duplicates:
+        logger.warning(f"[SYMBOLS] Duplicate tickers found: {duplicates}")
+    else:
+        logger.info("[SYMBOLS] No duplicate tickers found.")
+
+    # 3. YFinance Provider Check (also checks delisted/invalid)
+    from providers.yfinance_provider import validate_symbols
+    validate_symbols()
+    
+    # 4. Cache Check
+    stats = cache_manager.get_cache_stats()
+    if stats["daily_tickers"] == 0:
+        logger.warning("[CACHE] Cache is MISSING or empty. Data will be fetched on demand.")
+    else:
+        logger.info(f"[CACHE] Found {stats['daily_tickers']} daily tickers ({stats['total_size_mb']} MB)")
+    
+    logger.info("=" * 60)
+
+def main() -> None:
+    """Launch the RRG Dashboard."""
+    logger.info("Starting RRG Dashboard...")
+    
+    # Initialize components
+    from providers.yfinance_provider import YFinanceProvider
+    from services.rrg_service import RRGService
+    
+    providers = [
+        YFinanceProvider()
+    ]
+    cache_manager = CacheManager(providers=providers)
+    
+    # Run Validation
+    validate_startup(cache_manager)
+    
+    engine = JdKEngine()
+    rrg_service = RRGService(cache_manager, engine)
+    
+    # Create Dash app
+    app = create_app(rrg_service)
+    
+    # Run server
+    logger.info("Server started at http://127.0.0.1:8050")
+    app.run(debug=True, port=8050)
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,42 @@
+{
+    "description": "Expected results for synthetic test fixtures. Sector outperforms benchmark in Phase 1 (days 1-65), then underperforms in Phase 3 (days 69-100). Raw RS should rise then fall. RSR should be >100 during outperformance, <100 during underperformance. RSM should peak early, cross below 100 as outperformance slows, and be deeply negative during underperformance.",
+    "methodology": "JdK-inspired rolling z-score normalization. RSM computed from ROC of raw RS (not RSR). MOMENTUM_SMOOTHING=1.",
+    "parameters": {
+        "rsr_window": 10,
+        "rsm_window": 14,
+        "epsilon": 1e-6,
+        "momentum_smoothing": 1
+    },
+    "validation_checks": {
+        "raw_rs": {
+            "day_1": {
+                "sector_close": 5000.0,
+                "benchmark_close": 10000.0,
+                "raw_rs": 0.5,
+                "note": "RS = 5000/10000 = 0.5"
+            },
+            "day_65": {
+                "note": "RS should be significantly above 0.5 (sector outperforming)"
+            },
+            "day_100": {
+                "note": "RS should be below the day_65 peak (sector underperforming)"
+            }
+        },
+        "quadrant_expectations": {
+            "early_phase": {
+                "expected_quadrant": "Leading",
+                "note": "Both RSR and RSM > 100 when sector strongly outperforms"
+            },
+            "mid_phase": {
+                "expected_quadrant": "Weakening",
+                "note": "RSR still > 100 but RSM dropping below 100 as outperformance slows"
+            },
+            "late_phase": {
+                "expected_quadrant": "Lagging",
+                "note": "Both RSR and RSM < 100 during strong underperformance"
+            }
+        },
+        "rotation_direction": "clockwise",
+        "rotation_note": "Classic JdK rotation: Leading → Weakening → Lagging (→ Improving → Leading)"
+    }
+}

@@ -1,0 +1,384 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Dark theme overrides for Dash Dropdown */
+.dark-dropdown .Select-control {
+    background-color: #161b22;
+    color: #e6edf3;
+    border: 1px solid #30363d;
+}
+.dark-dropdown .Select-menu-outer {
+    background-color: #161b22;
+    color: #e6edf3;
+    border: 1px solid #30363d;
+}
+.dark-dropdown .Select-value-label {
+    color: #e6edf3 !important;
+}
+.dark-dropdown .Select-option {
+    background-color: #161b22;
+    color: #e6edf3;
+}
+.dark-dropdown .Select-option.is-focused {
+    background-color: #30363d;
+}
+.dark-dropdown .Select-option.is-selected {
+    background-color: #58a6ff;
+    color: white;
+}
+:root {
+    --bg-primary: #0d1117;
+    --bg-card: #161b22;
+    --border-color: #30363d;
+    --text-primary: #e6edf3;
+    --text-muted: #8b949e;
+    --accent-blue: #58a6ff;
+    
+    --quad-leading: rgba(46, 160, 67, 0.2);
+    --quad-weakening: rgba(249, 115, 22, 0.2);
+    --quad-lagging: rgba(248, 81, 73, 0.2);
+    --quad-improving: rgba(88, 166, 255, 0.2);
+    
+    --quad-leading-text: #3fb950;
+    --quad-weakening-text: #f97316;
+    --quad-lagging-text: #f85149;
+    --quad-improving-text: #58a6ff;
+    
+    --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-main);
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Force dark theme on natively white Dash components */
+button, input, select, textarea {
+    background-color: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 6px;
+    font-family: var(--font-main);
+}
+
+.rc-slider-tooltip,
+.rc-slider-tooltip-inner,
+.rc-slider-tooltip-content,
+.dash-tooltip {
+    background-color: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
+    border-radius: 6px !important;
+}
+
+.rc-slider-tooltip-arrow,
+.dash-tooltip-arrow {
+    border-top-color: var(--border-color) !important;
+    border-bottom-color: var(--border-color) !important;
+}
+
+.Select-control, .Select-menu-outer {
+    background-color: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+}
+
+.Select-value-label, .Select-placeholder {
+    color: var(--text-primary) !important;
+}
+
+/* ═══════════════════════════════════════════════
+   Dashboard Layout & Cards
+   ═══════════════════════════════════════════════ */
+
+.dashboard-card {
+    background-color: var(--bg-card) !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+    margin-bottom: 16px !important;
+    transition: box-shadow 0.2s ease;
+}
+
+.dashboard-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* ═══════════════════════════════════════════════
+   Quadrant Statistics
+   ═══════════════════════════════════════════════ */
+
+.quad-stat-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+    width: 100%;
+}
+
+.quad-stat-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: rgba(22, 27, 34, 0.5);
+    backdrop-filter: blur(4px);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.quad-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.quad-stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.quad-stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.quad-leading { border-top: 3px solid var(--quad-leading-text); }
+.quad-leading .quad-stat-value { color: var(--quad-leading-text); }
+
+.quad-weakening { border-top: 3px solid var(--quad-weakening-text); }
+.quad-weakening .quad-stat-value { color: var(--quad-weakening-text); }
+
+.quad-lagging { border-top: 3px solid var(--quad-lagging-text); }
+.quad-lagging .quad-stat-value { color: var(--quad-lagging-text); }
+
+.quad-improving { border-top: 3px solid var(--quad-improving-text); }
+.quad-improving .quad-stat-value { color: var(--quad-improving-text); }
+
+/* ═══════════════════════════════════════════════
+   Interactive Sector Legend
+   ═══════════════════════════════════════════════ */
+
+.sector-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 6px 12px;
+    padding: 10px 16px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #21262d;
+    user-select: none;
+}
+
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 14px;
+    cursor: pointer;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #e6edf3;
+    background: transparent;
+    border: 1px solid transparent !important;
+    transition: opacity 0.2s ease, background-color 0.15s ease, border-color 0.15s ease;
+    outline: none;
+    line-height: 1.4;
+}
+
+.legend-item:hover {
+    background-color: rgba(88, 166, 255, 0.08);
+    border-color: #30363d !important;
+}
+
+.legend-item:focus-visible {
+    border-color: #58a6ff !important;
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.3);
+}
+
+.legend-item.legend-hidden {
+    opacity: 0.3;
+}
+
+.legend-item.legend-dimmed {
+    opacity: 0.3 !important;
+}
+
+.legend-item.legend-hidden:hover {
+    opacity: 0.55;
+}
+
+.legend-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.btn-show-all, .btn-hide-all {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px !important;
+    border-radius: 12px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: var(--text-muted) !important;
+    background: rgba(139, 148, 158, 0.08) !important;
+    border: 1px solid var(--border-color) !important;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-left: 4px;
+    line-height: 1.4;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Phase 6: Endpoint Pulse Effect during Playback */
+body.is-playing .scatterlayer path.point {
+    animation: endpointPulse 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes endpointPulse {
+    0% {
+        opacity: 0.8;
+    }
+    100% {
+        opacity: 1.0;
+        filter: brightness(1.3) drop-shadow(0px 0px 3px rgba(255,255,255,0.4));
+    }
+}
+
+.btn-show-all:hover, .btn-hide-all:hover {
+    color: var(--text-primary) !important;
+    background: rgba(139, 148, 158, 0.16) !important;
+    border-color: #484f58 !important;
+}
+
+.anim-btn {
+    padding: 8px 14px;
+    cursor: pointer;
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.anim-btn:hover {
+    background-color: #30363d;
+    border-color: #8b949e;
+}
+
+.anim-btn:active {
+    transform: scale(0.96);
+}
+
+.anim-btn.play-btn {
+    color: var(--quad-leading-text);
+    background-color: rgba(46, 160, 67, 0.1);
+    border-color: rgba(46, 160, 67, 0.4);
+}
+
+.anim-btn.play-btn:hover {
+    background-color: rgba(46, 160, 67, 0.2);
+}
+
+.anim-btn.pause-btn {
+    color: var(--quad-lagging-text);
+    background-color: rgba(248, 81, 73, 0.1);
+    border-color: rgba(248, 81, 73, 0.4);
+}
+
+.anim-btn.pause-btn:hover {
+    background-color: rgba(248, 81, 73, 0.2);
+}
+
+/* Timeline slider styles */
+.rc-slider-track {
+    background-color: var(--accent-blue) !important;
+}
+.rc-slider-handle {
+    border: solid 2px var(--accent-blue) !important;
+    background-color: var(--bg-card) !important;
+    box-shadow: 0 0 4px rgba(88,166,255,0.5) !important;
+}
+.rc-slider-handle:hover, .rc-slider-handle:active, .rc-slider-handle:focus {
+    border-color: #79c0ff !important;
+    box-shadow: 0 0 6px rgba(88,166,255,0.8) !important;
+}
+.rc-slider-rail {
+    background-color: var(--border-color) !important;
+}
+
+/* Data Table Polish */
+.dash-table-container .dash-spreadsheet-container {
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    box-shadow: 0 0 0 1px var(--border-color) !important;
+}
+
+.dash-table-container .dash-spreadsheet-inner td {
+    transition: background-color 0.15s ease !important;
+}
+
+.dash-table-container .dash-spreadsheet-inner tr:hover td {
+    background-color: rgba(88, 166, 255, 0.1) !important;
+}
+
+/* ═══════════════════════════════════════════════
+   Accessibility & Focus States (Task 9)
+   ═══════════════════════════════════════════════ */
+*:focus-visible {
+    outline: 2px solid #58a6ff !important;
+    outline-offset: 2px;
+}
+
+/* ═══════════════════════════════════════════════
+   Responsive Layout (Task 8)
+   ═══════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+    /* Stack controls on smaller screens */
+    div[style*="flexWrap: wrap"] {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+    
+    #rrg-graph {
+        min-height: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Mobile adjustments */
+    .sector-legend {
+        padding: 5px;
+    }
+    .legend-item {
+        font-size: 11px;
+        padding: 3px 6px;
+    }
+    .quad-stat-container {
+        flex-wrap: wrap;
+    }
+    .quad-stat-container > div {
+        flex: 1 1 40%;
+        margin-bottom: 5px;
+    }
+}

@@ -1,0 +1,126 @@
+BUG: RRG trail renders as a sharp jagged zigzag instead of a 
+smooth path through time. Visible when stepping frame-by-frame 
+(e.g. frame 154 to 155) — the trail line spikes backward and 
+forward sharply rather than progressing smoothly.
+
+This is NOT a calculation accuracy bug (RSR/RSM scale is now 
+correct, ~94-106 range). This is an INDEX ALIGNMENT bug between 
+the rsr array and rsm array for a given sector.
+
+═══════════════════════════════════════════════════════
+STEP 1 — VERIFY THE HYPOTHESIS
+═══════════════════════════════════════════════════════
+
+In engine/jdk_engine.py, find where RSR and RSM are computed
+and where they are combined into the final result per sector.
+
+Check specifically: are rsr and rsm dropna()'d SEPARATELY 
+before being combined, or do they share the same index 
+before output?
+
+Print this diagnostic for ONE sector (e.g. NIFTY MEDIA):
+
+  print("RSR index:", rsr_series.index[:5], "...", rsr_series.index[-5:])
+  print("RSM index:", rsm_series.index[:5], "...", rsm_series.index[-5:])
+  print("RSR length:", len(rsr_series))
+  print("RSM length:", len(rsm_series))
+  print("Index equal:", rsr_series.index.equals(rsm_series.index))
+
+If "Index equal" prints False, or if lengths differ, this 
+confirms the bug. RSR uses window=10 for its rolling 
+calculation and RSM uses window=14. Since both come from 
+dropna() after their own independent rolling windows, RSM 
+starts later than RSR. If the code zips them by position 
+(not by date) when building the output arrays, frame N in 
+rsr and frame N in rsm refer to DIFFERENT DATES.
+
+═══════════════════════════════════════════════════════
+STEP 2 — FIX: ALIGN ON COMMON DATE INDEX BEFORE OUTPUT
+═══════════════════════════════════════════════════════
+
+In jdk_engine.py, after computing both rsr_series and 
+rsm_series for a sector, before adding them to the result:
+
+  common_idx = rsr_series.index.intersection(rsm_series.index)
+  common_idx = common_idx.sort_values()
+  
+  rsr_aligned = rsr_series.loc[common_idx]
+  rsm_aligned = rsm_series.loc[common_idx]
+  
+  # Now both arrays are guaranteed to be the same length
+  # and index position N means the same date in both arrays
+
+This must happen for EVERY sector individually, because 
+different sectors may have different data availability 
+(some indices have shorter history).
+
+ALSO CRITICAL: the `dates` array returned at the top level 
+of RRGResult must also be built from a common_idx that is 
+the INTERSECTION across ALL sectors, not just one. If sector 
+A has 246 dates and sector B has 240 dates, but the global 
+`dates` array has 246 entries, then sector B's arrays will 
+be 6 elements short and every index after the gap will be 
+shifted — which produces exactly this kind of zigzag when 
+sliced by a shared frame index in JavaScript.
+
+Add this check in the engine before building the final 
+RRGResult:
+
+  print("Per-sector date counts:")
+  for ticker, data in computed.items():
+      print(f"  {ticker}: {len(data['rsr'])} frames")
+  
+  # All sectors MUST have the same count.
+  # If they don't, the frontend slicing breaks.
+
+If counts differ, build a GLOBAL common date index across 
+ALL sectors (intersection of all sector date ranges) and 
+reindex every sector's rsr/rsm series to that global index 
+before serialization. Use forward-fill ONLY for short gaps 
+(1-2 missing dates), and exclude sectors with insufficient 
+overlap entirely rather than padding with fabricated values.
+
+═══════════════════════════════════════════════════════
+STEP 3 — VERIFY THE FIX
+═══════════════════════════════════════════════════════
+
+After the fix, re-run and check:
+
+  1. All sectors in the frame store have IDENTICAL length 
+     rsr and rsm arrays:
+     
+     for ticker, data in store["sectors"].items():
+         assert len(data["rsr"]) == len(data["rsm"])
+         assert len(data["rsr"]) == len(store["dates"])
+
+  2. In the browser, step through frames one at a time using 
+     the Next button (not Play) on the MEDIA sector alone.
+     The trail should extend smoothly — each new point should 
+     be reasonably close to the previous point, not jump 
+     across the chart.
+
+  3. Compare consecutive frame RSR values for one sector:
+     frame[N].rsr should be close to frame[N-1].rsr 
+     (small weekly change), not wildly different.
+
+═══════════════════════════════════════════════════════
+STEP 4 — SEPARATE ISSUE: SINGLE SECTOR HIDDEN STATE
+═══════════════════════════════════════════════════════
+
+This is expected legend behavior (click = show only that 
+sector, click again = show all) based on rrgLegend.js logic. 
+Not a bug. No action needed unless you want to change the 
+interaction model — confirm with the user whether single-click 
+isolate is the desired UX or whether it should be checkbox-style 
+multi-select by default.
+
+═══════════════════════════════════════════════════════
+REPORT
+═══════════════════════════════════════════════════════
+
+ROOT CAUSE: <confirmed via Step 1 diagnostic output>
+FIX APPLIED: <exact change in jdk_engine.py>
+PER-SECTOR FRAME COUNTS BEFORE FIX: <paste>
+PER-SECTOR FRAME COUNTS AFTER FIX: <paste — must all match>
+VISUAL VERIFICATION: <does stepping frame-by-frame show 
+smooth progression now?>
