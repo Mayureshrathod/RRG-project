@@ -135,7 +135,7 @@ class JdKEngine(IRRGEngine):
             )
             return None
 
-        # --- Pinned formulas ---
+        # --- Pinned formulas (Standard JdK Methodology) ---
 
         # raw_rs = sector_close / benchmark_close
         raw_rs = aligned["sector"] / aligned["bench"]
@@ -143,18 +143,24 @@ class JdKEngine(IRRGEngine):
         # RSR: z-score of raw_rs
         rs_mean = raw_rs.rolling(window=rsr_window).mean()
         rs_std = raw_rs.rolling(window=rsr_window).std(ddof=0)
-        rsr = 100.0 + (raw_rs - rs_mean) / (rs_std + EPSILON)
+        rsr_raw = 100.0 + (raw_rs - rs_mean) / (rs_std + EPSILON)
 
-        # RSM: z-score of ROC of raw_rs (NOT from RSR)
-        roc = raw_rs.pct_change(1)
-        roc_mean = roc.rolling(window=rsm_window).mean()
-        roc_std = roc.rolling(window=rsm_window).std(ddof=0)
-        rsm = 100.0 + (roc - roc_mean) / (roc_std + EPSILON)
+        # RSM: z-score of the rate-of-change of RSR (derived FROM RSR)
+        # This coupling creates the characteristic clockwise rotation:
+        #   RSR rising  + RSM rising  → Improving → Leading
+        #   RSR rising  + RSM falling → Leading   → Weakening
+        #   RSR falling + RSM falling → Weakening → Lagging
+        #   RSR falling + RSM rising  → Lagging   → Improving
+        rsr_roc = rsr_raw.pct_change(1)
+        roc_mean = rsr_roc.rolling(window=rsm_window).mean()
+        roc_std = rsr_roc.rolling(window=rsm_window).std(ddof=0)
+        rsm_raw = 100.0 + (rsr_roc - roc_mean) / (roc_std + EPSILON)
 
-        # Smooth the raw RSR and RSM output to eliminate the jagged bouncing zigzags
-        # This is mathematically required to reveal the rotational trend inside the weekly noise
-        rsr = rsr.rolling(window=3).mean()
-        rsm = rsm.rolling(window=3).mean()
+        # EMA smoothing eliminates zigzag noise while preserving trends
+        # EMA weights recent data higher, making trails visually smooth
+        smooth_span = 5
+        rsr = rsr_raw.ewm(span=smooth_span, adjust=False).mean()
+        rsm = rsm_raw.ewm(span=smooth_span, adjust=False).mean()
 
         # Drop NaN rows from rolling warm-up
         rsr = rsr.dropna()
