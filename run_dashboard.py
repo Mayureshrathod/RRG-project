@@ -2,8 +2,13 @@
 RRG Dashboard — Entry Point
 """
 
+import sys
+import os
 import time
 from datetime import datetime
+
+# Ensure the project root is in the Python path
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from cache.cache_manager import CacheManager
 from engine.jdk_engine import JdKEngine
@@ -37,10 +42,10 @@ def validate_startup(cache_manager: CacheManager) -> None:
     
     # 4. Cache Check
     stats = cache_manager.get_cache_stats()
-    if stats["daily_tickers"] == 0:
+    if stats["cached_tickers"] == 0:
         logger.warning("[CACHE] Cache is MISSING or empty. Data will be fetched on demand.")
     else:
-        logger.info(f"[CACHE] Found {stats['daily_tickers']} daily tickers ({stats['total_size_mb']} MB)")
+        logger.info(f"[CACHE] Found {stats['cached_tickers']} daily tickers ({stats['total_size_mb']:.2f} MB)")
     
     logger.info("=" * 60)
 
@@ -50,12 +55,15 @@ def main() -> None:
     
     # Initialize components
     from providers.yfinance_provider import YFinanceProvider
+    from providers.bhavcopy_provider import BhavCopyProvider
+    from providers.provider_manager import ProviderManager
     from services.rrg_service import RRGService
     
-    providers = [
-        YFinanceProvider()
-    ]
-    cache_manager = CacheManager(providers=providers)
+    provider_manager = ProviderManager(
+        primary=BhavCopyProvider(),
+        fallbacks=[YFinanceProvider()]
+    )
+    cache_manager = CacheManager(providers=[provider_manager])
     
     # Run Validation
     validate_startup(cache_manager)
