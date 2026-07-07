@@ -60,8 +60,8 @@ def main() -> None:
     from services.rrg_service import RRGService
     
     provider_manager = ProviderManager(
-        primary=BhavCopyProvider(),
-        fallbacks=[YFinanceProvider()]
+        primary=YFinanceProvider(),
+        fallbacks=[BhavCopyProvider()]
     )
     cache_manager = CacheManager(providers=[provider_manager])
     
