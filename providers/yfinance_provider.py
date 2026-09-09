@@ -58,7 +58,7 @@ def validate_symbols() -> List[Tuple[str, str, bool]]:
 
     results = []
     logger.info("=" * 60)
-    logger.info("SYMBOL VALIDATION — Yahoo Finance")
+    logger.info("SYMBOL VALIDATION -- Yahoo Finance")
     logger.info("=" * 60)
 
     for nse_name, yf_symbol in _YF_TICKER_MAP.items():

@@ -252,36 +252,8 @@ class JdKEngine(IRRGEngine):
             return
             
         common_idx = pd.DatetimeIndex(common_dates)
-        
-        # --- DIAGNOSTIC START ---
-        out = []
-        if "NIFTY REALTY" in results:
-            realty = results["NIFTY REALTY"]
-            out.append("STEP 1: PRE-FIX DIAGNOSTIC")
-            out.append(f"Global dates count: {len(common_dates)}")
-            out.append(f"REALTY rsr count: {len(realty.rs_ratio)}")
-            out.append(f"REALTY rsm count: {len(realty.rs_momentum)}")
-            out.append("\nIndex | Date       | RSR    | RSM")
-            
-            # Print index 70-79 of REALTY pre-fix
-            for i in range(70, min(80, len(realty.rs_ratio))):
-                d_str = str(realty.dates[i])[:10] if i < len(realty.dates) else "None"
-                rsr_val = realty.rs_ratio[i]
-                rsm_val = realty.rs_momentum[i]
-                out.append(f"{i:5d} | {d_str} | {rsr_val:.3f} | {rsm_val:.3f}")
-                
-            out.append("\nSTEP 2: CHECK INDICES")
-            rsr_s = realty._rsr_series
-            rsm_s = realty._rsm_series
-            
-            rsr_idx = rsr_s.index[70:80].tolist()
-            rsm_idx = rsm_s.index[70:80].tolist()
-            out.append(f"rsr_series index sample: {[str(x)[:10] for x in rsr_idx]}")
-            out.append(f"rsm_series index sample: {[str(x)[:10] for x in rsm_idx]}")
-            out.append(f"Are these equal? {rsr_idx == rsm_idx}")
-            
-        # --- FIX IMPLEMENTATION (STEP 3) ---
         tickers_to_drop = []
+
         for ticker, res in results.items():
             # DO NOT ffill. Reindex strictly by exact date label.
             rsr_reindexed = res._rsr_series.reindex(common_idx)
@@ -306,26 +278,6 @@ class JdKEngine(IRRGEngine):
             
         for ticker in tickers_to_drop:
             del results[ticker]
-            
-        # --- DIAGNOSTIC END ---
-        if "NIFTY REALTY" in results:
-            realty = results["NIFTY REALTY"]
-            out.append("\nSTEP 4: POST-FIX DIAGNOSTIC")
-            out.append(f"Global dates count: {len(common_dates)}")
-            out.append(f"REALTY rsr count: {len(realty.rs_ratio)}")
-            out.append(f"REALTY rsm count: {len(realty.rs_momentum)}")
-            out.append("\nIndex | Date       | RSR    | RSM")
-            
-            # Print index 70-79 of REALTY post-fix
-            for i in range(70, min(80, len(realty.rs_ratio))):
-                d_str = str(realty.dates[i])[:10]
-                rsr_val = realty.rs_ratio[i]
-                rsm_val = realty.rs_momentum[i]
-                out.append(f"{i:5d} | {d_str} | {rsr_val:.3f} | {rsm_val:.3f}")
-                
-        # Write diagnostic to file
-        with open("diagnostic_output.txt", "w") as f:
-            f.write("\n".join(out))
 
     def _compute_ranks(self, results: Dict[str, SectorResult]) -> None:
         """Compute composite rank: 0.4*norm_rsr + 0.4*norm_rsm + 0.2*norm_velocity."""

@@ -1,5 +1,5 @@
 """
-Phase 0 — Real-World Validation Script
+Real-World Validation Script
 
 Fetches NIFTY BANK and NIFTY 50 data, computes RSR/RSM,
 and validates quadrant classification + rotation direction
@@ -39,12 +39,12 @@ def classify_quadrant(rsr: float, rsm: float) -> str:
 def run_validation():
     """Run the full validation pipeline."""
     print("=" * 70)
-    print("RRG Phase 0 — Real-World Validation")
+    print("RRG Phase 0 -- Real-World Validation")
     print("NIFTY BANK vs NIFTY 50 (Weekly Timeframe)")
     print("=" * 70)
     print()
 
-    # ── Step 1: Fetch Data ──────────────────────────────────────
+    # -- Step 1: Fetch Data --------------------------------------
     print("[1/6] Fetching data...")
 
     try:
@@ -54,27 +54,27 @@ def run_validation():
         end_date = date.today()
         start_date = end_date - timedelta(days=730)
 
-        print(f"  Fetching NIFTY 50 ({start_date} → {end_date})...")
+        print(f"  Fetching NIFTY 50 ({start_date} -> {end_date})...")
         benchmark_df = provider.fetch_index_history("NIFTY 50", start_date, end_date)
 
-        print(f"  Fetching NIFTY BANK ({start_date} → {end_date})...")
+        print(f"  Fetching NIFTY BANK ({start_date} -> {end_date})...")
         import time
         time.sleep(1)  # Avoid rate limiting
         sector_df = provider.fetch_index_history("NIFTY BANK", start_date, end_date)
 
         if benchmark_df is None or sector_df is None:
-            print("  ❌ FAILED: Could not fetch from yfinance.")
+            print("  [FAIL] FAILED: Could not fetch from yfinance.")
             print("  Cannot proceed with real-world validation.")
             return False
 
     except Exception as e:
-        print(f"\n  ❌ FAILED: {e}")
+        print(f"\n  [FAIL] FAILED: {e}")
         return False
 
-    print(f"  ✅ Benchmark: {len(benchmark_df)} daily rows")
-    print(f"  ✅ Sector:    {len(sector_df)} daily rows")
+    print(f"  [PASS] Benchmark: {len(benchmark_df)} daily rows")
+    print(f"  [PASS] Sector:    {len(sector_df)} daily rows")
 
-    # ── Step 2: Resample to Weekly ──────────────────────────────
+    # -- Step 2: Resample to Weekly ------------------------------
     print("\n[2/6] Resampling to weekly...")
 
     bench_weekly = resample_close_series(benchmark_df["Close"], Timeframe.WEEKLY)
@@ -86,9 +86,9 @@ def run_validation():
     sector_close = sector_weekly.loc[common].values
     dates = common
 
-    print(f"  ✅ {len(common)} common weekly dates")
+    print(f"  [PASS] {len(common)} common weekly dates")
 
-    # ── Step 3: Compute Raw RS ──────────────────────────────────
+    # -- Step 3: Compute Raw RS ----------------------------------
     print("\n[3/6] Computing raw RS...")
 
     raw_rs = compute_raw_rs(sector_close, bench_close)
@@ -97,7 +97,7 @@ def run_validation():
     print(f"  Min RS:    {np.nanmin(raw_rs):.6f}")
     print(f"  Max RS:    {np.nanmax(raw_rs):.6f}")
 
-    # ── Step 4: Compute RSR and RSM ─────────────────────────────
+    # -- Step 4: Compute RSR and RSM -----------------------------
     print("\n[4/6] Computing RSR and RSM (weekly, canonical JdK windows)...")
 
     windows = get_windows(Timeframe.WEEKLY)
@@ -115,18 +115,18 @@ def run_validation():
     valid_indices = np.where(valid_mask)[0]
 
     if len(valid_indices) == 0:
-        print("  ❌ FAILED: No valid RSR/RSM values computed.")
+        print("  [FAIL] FAILED: No valid RSR/RSM values computed.")
         return False
 
     valid_rsr = rsr[valid_mask]
     valid_rsm = rsm[valid_mask]
     valid_dates = dates[valid_mask]
 
-    print(f"  ✅ {len(valid_rsr)} valid data points")
+    print(f"  [PASS] {len(valid_rsr)} valid data points")
     print(f"  RSR range: [{np.min(valid_rsr):.2f}, {np.max(valid_rsr):.2f}]")
     print(f"  RSM range: [{np.min(valid_rsm):.2f}, {np.max(valid_rsm):.2f}]")
 
-    # ── Step 5: Quadrant Classification ─────────────────────────
+    # -- Step 5: Quadrant Classification -------------------------
     print("\n[5/6] Quadrant analysis...")
 
     current_rsr = valid_rsr[-1]
@@ -149,7 +149,7 @@ def run_validation():
         pct = count / len(valid_rsr) * 100
         print(f"    {q:12s}: {count:3d} weeks ({pct:.1f}%)")
 
-    # ── Step 6: Rotation Direction ──────────────────────────────
+    # -- Step 6: Rotation Direction ------------------------------
     print("\n[6/6] Rotation analysis (last 10 data points)...")
 
     trail = min(10, len(valid_rsr))
@@ -158,7 +158,7 @@ def run_validation():
     trail_dates = valid_dates[-trail:]
 
     print(f"\n  {'Date':>12s}  {'RSR':>8s}  {'RSM':>8s}  {'Quadrant':>12s}")
-    print(f"  {'─' * 12}  {'─' * 8}  {'─' * 8}  {'─' * 12}")
+    print(f"  {'-' * 12}  {'-' * 8}  {'-' * 8}  {'-' * 12}")
     for i in range(trail):
         d = trail_dates[i].strftime('%Y-%m-%d')
         q = classify_quadrant(trail_rsr[i], trail_rsm[i])
@@ -171,12 +171,12 @@ def run_validation():
         angle = np.degrees(np.arctan2(delta_rsm, delta_rsr))
         velocity = np.sqrt(delta_rsr**2 + delta_rsm**2)
         print(f"\n  Last movement:")
-        print(f"    ΔRSR:      {delta_rsr:+.4f}")
-        print(f"    ΔRSM:      {delta_rsm:+.4f}")
-        print(f"    Direction: {angle:.1f}°")
+        print(f"    delta_RSR: {delta_rsr:+.4f}")
+        print(f"    delta_RSM: {delta_rsm:+.4f}")
+        print(f"    Direction: {angle:.1f} deg")
         print(f"    Velocity:  {velocity:.4f}")
 
-    # ── Validation Summary ──────────────────────────────────────
+    # -- Validation Summary --------------------------------------
     print("\n" + "=" * 70)
     print("VALIDATION SUMMARY")
     print("=" * 70)
@@ -208,21 +208,16 @@ def run_validation():
 
     all_passed = True
     for desc, passed in checks:
-        status = "✅ PASS" if passed else "❌ FAIL"
+        status = "[PASS]" if passed else "[FAIL]"
         print(f"  {status}  {desc}")
         if not passed:
             all_passed = False
 
     print()
     if all_passed:
-        print("  ✅ ALL CHECKS PASSED — Engine validated for real-world data.")
-        print()
-        print("  NOTE: This validates mathematical behavior (finite values,")
-        print("  centered at 100, rotation present). For directional comparison")
-        print("  with StockCharts/Optuma, visually inspect the trail above.")
+        print("  [PASS] ALL CHECKS PASSED -- Engine validated for real-world data.")
     else:
-        print("  ❌ VALIDATION FAILED — Do NOT proceed to dashboard.")
-        print("  Investigate and fix engine before continuing.")
+        print("  [FAIL] VALIDATION FAILED")
 
     print("=" * 70)
     return all_passed

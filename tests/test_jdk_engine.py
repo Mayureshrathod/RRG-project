@@ -21,14 +21,24 @@ FIXTURES = Path(__file__).parent / "fixtures"
 
 @pytest.fixture
 def benchmark_df():
-    df = pd.read_csv(FIXTURES / "benchmark_daily.csv", parse_dates=["Date"])
-    return df.set_index("Date")
+    dates = pd.date_range("2023-01-01", periods=250, freq="B")
+    return pd.DataFrame({
+        "Open": np.linspace(10000, 12000, 250),
+        "High": np.linspace(10050, 12050, 250),
+        "Low": np.linspace(9950, 11950, 250),
+        "Close": np.linspace(10000, 12000, 250),
+    }, index=dates)
 
 
 @pytest.fixture
 def sector_df():
-    df = pd.read_csv(FIXTURES / "sector_daily.csv", parse_dates=["Date"])
-    return df.set_index("Date")
+    dates = pd.date_range("2023-01-01", periods=250, freq="B")
+    return pd.DataFrame({
+        "Open": np.linspace(5000, 7000, 250),
+        "High": np.linspace(5050, 7050, 250),
+        "Low": np.linspace(4950, 6950, 250),
+        "Close": np.linspace(5000, 7000, 250),
+    }, index=dates)
 
 
 class TestJdKEngine:
