@@ -380,4 +380,4 @@ This software is for educational, research, and personal analytical purposes onl
 
 ## License
 
-This project is currently provided for educational, research, and personal analytical use. Formal licensing terms are not specified.
+This project is licensed under the [MIT License](LICENSE).
